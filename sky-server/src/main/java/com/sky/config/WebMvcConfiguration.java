@@ -15,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -59,6 +60,18 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+
+        //图片访问映射：将项目根目录 Photos 文件夹下的图片通过 /Photos/** 访问
+        File photosDir = new File(System.getProperty("user.dir"));
+        //IDEA 默认在 sky-server 模块目录下启动，此时 Photos 位于上一级的项目根目录
+        if (photosDir.getName().equals("sky-server")) {
+            photosDir = photosDir.getParentFile();
+        }
+        photosDir = new File(photosDir, "Photos");
+        if (!photosDir.exists()) {
+            photosDir.mkdirs();
+        }
+        registry.addResourceHandler("/Photos/**").addResourceLocations(photosDir.toURI().toString());
     }
 
     @Override
