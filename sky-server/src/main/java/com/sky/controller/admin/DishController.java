@@ -41,4 +41,11 @@ public class DishController {
         dishService.deleteDishById(ids);
         return Result.success();
     }
+
+    @PutMapping
+    @Operation(summary = "修改菜品")
+    public Result updateDish(@RequestBody DishDTO dishDTO) {
+        dishService.updateDishAndFlavor(dishDTO);
+        return Result.success();
+    }
 }

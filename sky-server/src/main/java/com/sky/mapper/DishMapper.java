@@ -28,11 +28,11 @@ public interface DishMapper {
 
     Page<Dish> selectPage(DishPageQueryDTO pageQueryDTO);
 
-    @Delete("delete from dish where id = #{id}")
-    void deleteById(Long id);
-
     @Select("select * from dish where id = #{id}")
     Dish selectById(Long id);
 
     void deleteByIds(List<Long> ids);
+
+    @AutoFill(value = OperationType.UPDATE)
+    void updateById(Dish dishId);
 }

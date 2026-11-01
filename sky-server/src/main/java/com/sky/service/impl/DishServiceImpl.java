@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -73,5 +74,24 @@ public class DishServiceImpl implements DishService {
 
         dishMapper.deleteByIds(ids);
         dishFlavorMapper.deleteByDishIds(ids);
+    }
+
+    @Transactional
+    @Override
+    public void updateDishAndFlavor(DishDTO dishDTO) {
+        //导入新数据
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        dishMapper.updateById(dish);
+
+        //删除旧口味
+        dishFlavorMapper.deleteByDishIds(Collections.singletonList(dishDTO.getId()));
+
+        //更新菜品
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if(flavors != null && flavors.size() > 0){
+            flavors.forEach(df -> df.setDishId(dish.getId()));
+            dishFlavorMapper.insertBatch(flavors);
+        }
     }
 }
