@@ -185,6 +185,14 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- JDK 24+ 的 Unsafe/原生访问/动态 agent 告警，以及 Mockito 以 agent 方式加载 -->
+                    <argLine>-Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -XX:+EnableDynamicAgentLoading -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
