@@ -14,20 +14,37 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class ShopController {
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @PutMapping("/{status}")
     @Operation(summary = "设置店铺营业状态")
     public Result setStatus(@PathVariable Integer status){
         log.info("设置店铺营业状态为：{}", status==1?"营业":"关闭");
-        redisTemplate.opsForValue().set("SHOP_STATUS",status);
+        redisTemplate.opsForValue().set("SHOP_STATUS", String.valueOf(status));
         return Result.success();
     }
 
     @GetMapping("/status")
     @Operation(summary = "获取店铺营业状态")
     public Result<Integer> getStatus(){
-        log.info("获取店铺营业状态为：{}", (Integer)redisTemplate.opsForValue().get("SHOP_STATUS")==1?"营业":"关闭");
-        return  Result.success((Integer) redisTemplate.opsForValue().get("SHOP_STATUS"));
+        Integer status = getStatusFromRedis();
+        log.info("获取店铺营业状态为：{}", status == 1 ? "营业" : "关闭");
+        return Result.success(status);
+    }
+
+    /**
+     * 从redis读取营业状态，key不存在或值非法时按"打烊(0)"处理
+     */
+    private Integer getStatusFromRedis() {
+        String value = redisTemplate.opsForValue().get("SHOP_STATUS");
+        if (value == null) {
+            return 0;
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            log.warn("营业状态缓存值非法，按打烊处理：{}", value);
+            return 0;
+        }
     }
 }
