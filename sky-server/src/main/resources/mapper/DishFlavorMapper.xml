@@ -9,6 +9,10 @@
             (#{df.dishId}, #{df.name}, #{df.value})
         </foreach>
         </insert>
+    <select id="getByDishId" parameterType="Long" resultType="DishFlavor">
+        select * from dish_flavor where dish_id = #{dishId}
+    </select>
+
     <delete id="deleteByDishIds" parameterType="java.util.List">
     delete from dish_flavor where dish_id in
                             <foreach collection="ids" item="id" open="(" separator="," close=")">
