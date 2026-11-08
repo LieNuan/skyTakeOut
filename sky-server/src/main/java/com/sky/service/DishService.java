@@ -31,4 +31,11 @@ public interface DishService {
      * @param id
      */
     void startOrStop(Integer status, Long id);
+
+    /**
+     * 根据id查询菜品及口味（用于编辑回显）
+     * @param id
+     * @return
+     */
+    DishVO getByIdWithFlavor(Long id);
 }

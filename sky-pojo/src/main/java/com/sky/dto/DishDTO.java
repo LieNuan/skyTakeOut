@@ -4,7 +4,6 @@ import com.sky.entity.DishFlavor;
 import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -23,7 +22,7 @@ public class DishDTO implements Serializable {
     private String description;
     //0 停售 1 起售
     private Integer status;
-    //口味
-    private List<DishFlavor> flavors = new ArrayList<>();
+    //口味：为 null 表示本次不修改口味，传空数组表示清空口味
+    private List<DishFlavor> flavors;
 
 }

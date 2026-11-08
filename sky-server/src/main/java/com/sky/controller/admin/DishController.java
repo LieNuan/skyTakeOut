@@ -5,6 +5,7 @@ import com.sky.dto.DishPageQueryDTO;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.DishService;
+import com.sky.vo.DishVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,13 @@ public class DishController {
     public Result<PageResult> pageDish(DishPageQueryDTO pageQueryDTO) {
         PageResult pageResult = dishService.pageQuery(pageQueryDTO);
         return Result.success(pageResult);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "根据id查询菜品（含口味）")
+    public Result<DishVO> getById(@PathVariable Long id) {
+        DishVO dishVO = dishService.getByIdWithFlavor(id);
+        return Result.success(dishVO);
     }
 
     @DeleteMapping
