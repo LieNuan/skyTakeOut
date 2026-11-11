@@ -61,6 +61,26 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
+    public void subShoppingCart(ShoppingCartDTO shoppingCartDTO) {
+        ShoppingCart shoppingCart = new ShoppingCart();
+        BeanUtils.copyProperties(shoppingCartDTO, shoppingCart);
+        shoppingCart.setUserId(BaseContext.getCurrentId());
+        List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
+        //购物车里没有这件商品，直接返回（前端可能在重复点击）
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        ShoppingCart cartItem = list.get(0);
+        //数量已经是1，再减就删掉这一行
+        if (cartItem.getNumber() == null || cartItem.getNumber() <= 1) {
+            shoppingCartMapper.deleteById(cartItem.getId());
+        } else {
+            cartItem.setNumber(cartItem.getNumber() - 1);
+            shoppingCartMapper.updateNumberById(cartItem);
+        }
+    }
+
+    @Override
     public List<ShoppingCart> seeShoppingCart() {
         Long userId = BaseContext.getCurrentId();
         ShoppingCart shoppingCart = new ShoppingCart();
@@ -73,7 +93,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     public void deleteShoppingCart() {
         //根据userId清空购物车
         Long userId = BaseContext.getCurrentId();
-        shoppingCartMapper.deleteById(userId);
+        shoppingCartMapper.deleteByUserId(userId);
 
 
     }

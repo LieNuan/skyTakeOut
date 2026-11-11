@@ -1,5 +1,6 @@
 package com.sky.vo;
 
+import com.sky.dto.OrdersSubmitDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,4 +23,5 @@ public class OrderSubmitVO implements Serializable {
     private BigDecimal orderAmount;
     //下单时间
     private LocalDateTime orderTime;
+
 }
