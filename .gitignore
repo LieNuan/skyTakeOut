@@ -5,3 +5,10 @@
 *Test.java
 **/test/
 Photos/
+
+# 管理端前端依赖与构建产物
+admin-web/node_modules/
+admin-web/dist/
+
+# 管理端语音播报音频
+admin-web/src/assets/audio/
