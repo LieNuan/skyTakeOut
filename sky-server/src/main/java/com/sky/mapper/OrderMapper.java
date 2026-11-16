@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -43,6 +44,12 @@ public interface OrderMapper {
     Double sumByMap(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end,
                     @Param("status") Integer status);
 
-    //根据日期查订单数据
+    Integer countByMap(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end,
+                       @Param("status") Integer status);
+
+    //查询指定时间区间内销量排名前10的商品
+    List<Map<String, Object>> getSalesTop10(@Param("begin") LocalDateTime begin,
+                                           @Param("end") LocalDateTime end,
+                                           @Param("status") Integer status);
 
 }
