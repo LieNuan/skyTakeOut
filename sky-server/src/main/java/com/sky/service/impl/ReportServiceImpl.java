@@ -30,10 +30,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public TurnoverReportVO getTurnoverStatistics(LocalDate beginDate, LocalDate endDate) {
-        List<LocalDate> dateList = new ArrayList<>();
-        for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            dateList.add(date);
-        }
+        List<LocalDate> dateList = getDateList(beginDate, endDate);
         List<Double> doubleList = new ArrayList<>();
         for (LocalDate date : dateList) {
             LocalDateTime begin = LocalDateTime.of(date, LocalTime.MIN);
@@ -50,10 +47,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public UserReportVO getUserStatistics(LocalDate beginDate, LocalDate endDate) {
-        List<LocalDate> dateList = new ArrayList<>();
-        for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            dateList.add(date);
-        }
+        List<LocalDate> dateList = getDateList(beginDate, endDate);
         //存放每天新增用户
         List<Integer> userList = new ArrayList<>();
         //总用户
@@ -73,10 +67,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public OrderReportVO getOrderStatistics(LocalDate beginDate, LocalDate endDate) {
-        List<LocalDate> dateList = new ArrayList<>();
-        for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            dateList.add(date);
-        }
+        List<LocalDate> dateList = getDateList(beginDate, endDate);
         //总订单数
         List<Integer> orderCountList = new ArrayList<>();
         //有效订单数
@@ -121,5 +112,14 @@ public class ReportServiceImpl implements ReportService {
                 .nameList(StringUtils.join(nameList, ","))
                 .numberList(StringUtils.join(numberList, ","))
                 .build();
+    }
+
+    //生成 beginDate 到 endDate 之间的日期列表（包含首尾），beginDate 晚于 endDate 时返回空列表
+    private List<LocalDate> getDateList(LocalDate beginDate, LocalDate endDate) {
+        List<LocalDate> dateList = new ArrayList<>();
+        for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            dateList.add(date);
+        }
+        return dateList;
     }
 }
