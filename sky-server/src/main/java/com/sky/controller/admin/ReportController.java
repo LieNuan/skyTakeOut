@@ -3,6 +3,7 @@ package com.sky.controller.admin;
 import com.sky.result.Result;
 import com.sky.service.ReportService;
 import com.sky.vo.TurnoverReportVO;
+import com.sky.vo.UserReportVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +28,20 @@ public class ReportController implements Serializable {
     @GetMapping("/turnoverStatistics")
     @Operation(summary = "营业额统计")
     public Result<TurnoverReportVO> turnoverStatistics(
-            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate beginDate,
-            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        log.info("营业额数据统计：{}，{}", beginDate, endDate);
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
+        log.info("营业额数据统计：{}，{}", begin, end);
 
-        return Result.success(reportService.getTurnoverStatistics(beginDate, endDate));
+        return Result.success(reportService.getTurnoverStatistics(begin, end));
     }
+
+    @GetMapping("/userStatistics")
+    @Operation(summary = "用户量统计")
+    public Result<UserReportVO> userStatistics(
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
+        log.info("用户量统计：{}，{}", begin, end);
+        return Result.success(reportService.getUserStatistics(begin, end));
+    }
+
 }
