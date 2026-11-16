@@ -1,0 +1,36 @@
+package com.sky.controller.admin;
+
+import com.sky.result.Result;
+import com.sky.service.ReportService;
+import com.sky.vo.TurnoverReportVO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+
+//数据统计相关接口
+@RestController
+@RequestMapping("/admin/report")
+@Tag(name = "数据统计相关接口")
+@Slf4j
+public class ReportController implements Serializable {
+    @Autowired
+    private ReportService reportService;
+
+    @GetMapping("/turnoverStatistics")
+    @Operation(summary = "营业额统计")
+    public Result<TurnoverReportVO> turnoverStatistics(
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate beginDate,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        log.info("营业额数据统计：{}，{}", beginDate, endDate);
+
+        return Result.success(reportService.getTurnoverStatistics(beginDate, endDate));
+    }
+}

@@ -3,6 +3,7 @@ package com.sky.mapper;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ public interface OrderMapper {
     void insert(Orders order);
 
     /**
-     * 条件查询订单
+     * 分页查询订单
      */
     List<Orders> list(OrdersPageQueryDTO ordersPageQueryDTO);
 
@@ -37,4 +38,11 @@ public interface OrderMapper {
     //查询超时订单
     @Select("select * from orders where status = #{status} and order_time < #{time}")
     List<Orders> findByStatusAndTimeLT(Integer status, LocalDateTime time);
+
+
+    Double sumByMap(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end,
+                    @Param("status") Integer status);
+
+    //根据日期查订单数据
+
 }
