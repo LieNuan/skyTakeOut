@@ -4,14 +4,25 @@ import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.BusinessDataVO;
 import com.sky.vo.OrderReportVO;
 import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -27,6 +38,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private WorkspaceService workspaceService;
 
     @Override
     public TurnoverReportVO getTurnoverStatistics(LocalDate beginDate, LocalDate endDate) {
@@ -112,6 +126,62 @@ public class ReportServiceImpl implements ReportService {
                 .nameList(StringUtils.join(nameList, ","))
                 .numberList(StringUtils.join(numberList, ","))
                 .build();
+    }
+
+    @Override
+    public void exportBusinessData(HttpServletResponse response) {
+        //统计最近30天：昨天往前推29天到昨天
+        LocalDate beginDate = LocalDate.now().minusDays(30);
+        LocalDate endDate = LocalDate.now().minusDays(1);
+
+        InputStream in = getClass().getClassLoader()
+                .getResourceAsStream("template/运营数据报表模板.xlsx");
+        if (in == null) {
+            throw new RuntimeException("未找到运营数据报表模板：template/运营数据报表模板.xlsx");
+        }
+
+        try (in; XSSFWorkbook workbook = new XSSFWorkbook(in)) {
+            Sheet sheet = workbook.getSheetAt(0);
+
+            //B2：统计时间区间
+            sheet.getRow(1).getCell(1).setCellValue("时间：" + beginDate + " 至 " + endDate);
+
+            //概览数据：营业额 C4、订单完成率 E4、新增用户数 G4、有效订单 C5、平均客单价 E5
+            BusinessDataVO overview = workspaceService.getBusinessData(
+                    LocalDateTime.of(beginDate, LocalTime.MIN),
+                    LocalDateTime.of(endDate, LocalTime.MAX));
+            Row overviewRow1 = sheet.getRow(3);
+            overviewRow1.getCell(2).setCellValue(overview.getTurnover());
+            overviewRow1.getCell(4).setCellValue(overview.getOrderCompletionRate());
+            overviewRow1.getCell(6).setCellValue(overview.getNewUsers());
+            Row overviewRow2 = sheet.getRow(4);
+            overviewRow2.getCell(2).setCellValue(overview.getValidOrderCount());
+            overviewRow2.getCell(4).setCellValue(overview.getUnitPrice());
+
+            //明细数据：从第8行开始，共30行，B~G列
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = beginDate.plusDays(i);
+                BusinessDataVO day = workspaceService.getBusinessData(
+                        LocalDateTime.of(date, LocalTime.MIN),
+                        LocalDateTime.of(date, LocalTime.MAX));
+                Row row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(day.getTurnover());
+                row.getCell(3).setCellValue(day.getValidOrderCount());
+                row.getCell(4).setCellValue(day.getOrderCompletionRate());
+                row.getCell(5).setCellValue(day.getUnitPrice());
+                row.getCell(6).setCellValue(day.getNewUsers());
+            }
+
+            //输出到响应流，浏览器直接下载
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            String fileName = URLEncoder.encode("运营数据报表.xlsx", StandardCharsets.UTF_8);
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            log.error("导出运营数据报表失败", e);
+            throw new RuntimeException("导出运营数据报表失败", e);
+        }
     }
 
     //生成 beginDate 到 endDate 之间的日期列表（包含首尾），beginDate 晚于 endDate 时返回空列表
