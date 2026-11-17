@@ -4,8 +4,11 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersCancelDTO;
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
+import com.sky.dto.OrdersRejectionDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.AddressBook;
 import com.sky.entity.OrderDetail;
@@ -249,5 +252,138 @@ public class OrderServiceImpl implements OrderService {
         BeanUtils.copyProperties(orders, orderVO);
         orderVO.setOrderDetailList(orderDetailMapper.getByOrderId(id));
         return orderVO;
+    }
+
+    /**
+     * 管理端：订单搜索
+     */
+    @Override
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Page<Orders> pageResult = (Page<Orders>) orderMapper.list(ordersPageQueryDTO);
+
+        List<OrderVO> orderVOList = new ArrayList<>();
+        if (pageResult != null) {
+            for (Orders orders : pageResult) {
+                OrderVO orderVO = new OrderVO();
+                BeanUtils.copyProperties(orders, orderVO);
+                // 拼接订单菜品信息
+                List<OrderDetail> details = orderDetailMapper.getByOrderId(orders.getId());
+                orderVO.setOrderDetailList(details);
+                StringBuilder sb = new StringBuilder();
+                if (details != null) {
+                    for (int i = 0; i < details.size(); i++) {
+                        if (i > 0) sb.append("；");
+                        sb.append(details.get(i).getName()).append("x").append(details.get(i).getNumber());
+                    }
+                }
+                orderVO.setOrderDishes(sb.toString());
+                orderVOList.add(orderVO);
+            }
+            return new PageResult(pageResult.getTotal(), orderVOList);
+        }
+        return new PageResult(0L, orderVOList);
+    }
+
+    /**
+     * 管理端：接单
+     */
+    @Override
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        Orders orders = Orders.builder()
+                .id(ordersConfirmDTO.getId())
+                .status(Orders.CONFIRMED)
+                .build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 管理端：拒单
+     */
+    @Override
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+        Orders ordersDB = orderMapper.getById(ordersRejectionDTO.getId());
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        // 只有待接单状态才能拒单
+        if (!ordersDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders orders = Orders.builder()
+                .id(ordersRejectionDTO.getId())
+                .status(Orders.CANCELLED)
+                .rejectionReason(ordersRejectionDTO.getRejectionReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+        // 已支付则退款
+        if (ordersDB.getPayStatus().equals(Orders.PAID)) {
+            orders.setPayStatus(Orders.REFUND);
+        }
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 管理端：取消订单
+     */
+    @Override
+    public void cancel(OrdersCancelDTO ordersCancelDTO) {
+        Orders ordersDB = orderMapper.getById(ordersCancelDTO.getId());
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        Orders orders = Orders.builder()
+                .id(ordersCancelDTO.getId())
+                .status(Orders.CANCELLED)
+                .cancelReason(ordersCancelDTO.getCancelReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+        if (ordersDB.getPayStatus().equals(Orders.PAID)) {
+            orders.setPayStatus(Orders.REFUND);
+        }
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 管理端：派送订单
+     */
+    @Override
+    public void delivery(Long id) {
+        Orders ordersDB = orderMapper.getById(id);
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (!ordersDB.getStatus().equals(Orders.CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 管理端：完成订单
+     */
+    @Override
+    public void complete(Long id) {
+        Orders ordersDB = orderMapper.getById(id);
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (!ordersDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.COMPLETED)
+                .deliveryTime(LocalDateTime.now())
+                .build();
+        orderMapper.update(orders);
     }
 }

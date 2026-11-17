@@ -1,0 +1,46 @@
+# 本地开发配置模板
+#
+# 用法：
+#   1. 复制本文件为 application-dev.yml（同目录）
+#   2. 把下面的占位值换成你本机的真实值
+#   3. application-dev.yml 已被 .gitignore 忽略，不会提交到仓库
+#
+# 也可以通过环境变量注入（优先级更高）：
+#   SKY_DB_USERNAME / SKY_DB_PASSWORD
+#   SKY_REDIS_PASSWORD
+#   SKY_WECHAT_APPID / SKY_WECHAT_SECRET
+#   SKY_JWT_ADMIN_SECRET_KEY / SKY_JWT_USER_SECRET_KEY
+
+sky:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: sky_take_out
+    username: your-db-username
+    password: your-db-password
+
+  redis:
+    host: localhost
+    port: 6379
+    password: your-redis-password
+    database: 1
+    timeout: 60000
+
+  wechat:
+    # 微信小程序 appid / secret（微信公众平台获取）
+    appid: your-wechat-appid
+    secret: your-wechat-secret
+    # 下面几项做微信支付时必填，值来自微信支付商户平台
+    #mchid: 商户号
+    #mch-serial-no: 商户API证书序列号
+    #private-key-file-path: 商户私钥文件路径
+    #api-v3-key: APIv3密钥
+    #we-chat-pay-cert-file-path: 平台证书路径
+    #notify-url: 支付成功回调地址
+    #refund-notify-url: 退款成功回调地址
+
+  jwt:
+    # 至少 32 个字符，可用 openssl rand -hex 32 生成
+    admin-secret-key: your-admin-jwt-secret-at-least-32-chars
+    user-secret-key: your-user-jwt-secret-at-least-32-chars

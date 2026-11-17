@@ -12,3 +12,7 @@ admin-web/dist/
 
 # 管理端语音播报音频
 admin-web/src/assets/audio/
+
+# 本地敏感配置（数据库密码、Redis 密码、微信 appid/secret、JWT 秘钥）
+# 首次拉取代码后，复制 application-dev.example.yml 为 application-dev.yml 再填写真实值
+sky-server/src/main/resources/application-dev.yml

@@ -15,7 +15,9 @@ export default defineConfig({
       // 普通接口走代理，避免浏览器跨域
       '/admin': { target: 'http://localhost:8080', changeOrigin: true },
       '/user': { target: 'http://localhost:8080', changeOrigin: true },
-      '/notify': { target: 'http://localhost:8080', changeOrigin: true }
+      '/notify': { target: 'http://localhost:8080', changeOrigin: true },
+      // 上传图片存放目录，代理到后端供前端访问
+      '/Photos': { target: 'http://localhost:8080', changeOrigin: true }
     }
   }
 })
